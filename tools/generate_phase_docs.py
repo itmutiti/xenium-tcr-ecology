@@ -48,8 +48,7 @@ def main() -> int:
             sorted(
                 p.name
                 for p in script_dir.glob("*")
-                if p.is_file()
-                and f"scripts/{folder}/{p.name}" in tracked
+                if p.is_file() and f"scripts/{folder}/{p.name}" in tracked
             )
             if script_dir.is_dir()
             else []
