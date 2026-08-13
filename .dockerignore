@@ -1,0 +1,51 @@
+.git/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+data/raw/
+data/staged/
+data/objects/
+data/derived/
+data/graphs/
+data/releases/
+data/external/
+data/standardised/
+results/
+reports/
+figures/
+tables/
+release/
+*.pdf
+.snakemake/
+
+# Private authoring / governance material -- never part of the Snakemake
+# DAG, must never be baked into a built image. The published image is
+# always built by CI from a fresh `actions/checkout`, so anything not
+# tracked by git (see .gitignore / .git/info/exclude) is already absent
+# from that build context; the generic patterns below are a second,
+# belt-and-braces layer for anyone building locally from a working copy
+# that still has such files on disk (Docker does not consult .gitignore
+# on its own).
+manuscript/**
+docs/Journals/
+docs/claude_code_prompt*.odt
+*_REPORT.md
+*_AUDIT.md
+*_REVIEW.md
+*_FOLLOWUP.md
+*_ANALYSIS.md
+*_VERIFICATION.md
+*_STRATEGY.md
+*_ROADMAP.md
+project_charter.yaml
+docs/execution_manual/DEVELOPMENT_NOTES.md
+docs/execution_manual/DEVELOPMENT_NOTES.pdf
+docs/reproducibility_investigation.md
+docs/reproducibility_investigation_evidence/
+docs/remaining_steps_for_publication.md
+docs/remaining_steps_for_publication.pdf
+.claude/

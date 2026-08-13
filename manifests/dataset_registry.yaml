@@ -1,0 +1,114 @@
+# Single source of truth for dataset accession/path metadata.
+#
+# Seven real datasets are registered: the primary Xenium HNSCC cohort, its
+# companion scRNA-seq reference (both from the source publication), and
+# five further real, independent external datasets acquired for external
+# validation (see governance/16_external_validation_and_generalisation_
+# decisions.md and docs/execution_manual/EXECUTION_MANUAL.md). Every
+# dataset is downloaded automatically (if not already present) and
+# checksum-verified by its consuming phase's acquisition script -- see
+# src/xenium_tcr_ecology/infra/download.py and each dataset's own
+# data/external/<name>/checksums.sha256 (tracked in the public repository
+# even though the datasets themselves are gitignored). The one exception
+# is GSE287301's VDJ subseries, which records no checksums.sha256 by
+# design -- GEO's own immutable per-sample accessions plus a real,
+# deterministic downstream pipeline output are its provenance chain
+# instead; see data/external/GSE287301/vdj/README.md.
+
+HNSCC_Xenium:
+  dataset_id: GSE300147
+  accession: GSE300147
+  source: GEO
+  publication: McCord_et_al_Science_Immunology_2026
+  publication_doi: 10.1126/sciimmunol.aec3133
+  assay: spatial
+  platform: 10x Xenium
+  panel: 377-gene multi-tissue/cancer panel + 100 custom probes (477 transcripts total)
+  cohort: 10 HNSCC patients (5 HPV-positive), 7 with technical replicate sections (17 sections total)
+  additional_specimen: 1 ameloblastoma (exploratory contrast only, not pooled into HNSCC inference)
+  raw_path: data/raw/HNSCC_Xenium/GSE300147
+  role: primary cohort -- all discovery-phase analyses (workflow stages 02-15)
+  active: true
+
+HNSCC_scRNA_companion:
+  dataset_id: GSE287301
+  accession: GSE287301
+  source: GEO
+  publication: McCord_et_al_Science_Immunology_2026
+  publication_doi: 10.1126/sciimmunol.aec3133
+  assay: scRNA-seq (10x, Cell Ranger 8.0.1) + paired scTCR-seq VDJ (16 pooled reactions, GSM8743474-GSM8743489, added post-hoc; not in the originally-acquired file subset)
+  cohort: T cells from the same 28-patient HNSCC cohort as HNSCC_Xenium (366,632 cells x 38,606 genes gene expression; 397,157 real hash-demultiplexed cells with paired VDJ)
+  raw_path: data/external/GSE287301
+  role: external reference-label transfer for cell-type annotation (06_cell_type_annotation); real, independent, paired scTCR-seq ground truth for validating Xenium CDR3-probe clone-calling (08_tcr_clonal_analysis, q_tcr_probe_ground_truth_validation)
+  active: true
+
+HNSCC_scRNA_reference_puram2017:
+  dataset_id: GSE103322
+  accession: GSE103322
+  source: GEO
+  publication: Puram_et_al_Cell_2017
+  publication_doi: null   # PMID 29198524; no DOI recorded in the GEO record
+  publication_pmid: "29198524"
+  assay: scRNA-seq (Smart-seq2, full-length)
+  cohort: 5,902 single cells, 18 HNSCC patients, multiple institutions
+  raw_path: data/external/GSE103322
+  role: first independent external validation reference (12_external_checkpoint_validation)
+  active: true
+
+HNSCC_scRNA_reference_cillo2020:
+  dataset_id: GSE139324
+  accession: GSE139324
+  source: GEO
+  publication: Cillo_et_al_Immunity_2020
+  publication_pmid: "31924475"
+  assay: scRNA-seq (10x droplet-based, CD45+ sorted)
+  cohort: 131,224 cells, HPV+/HPV- HNSCC patients and healthy donors (paired PBMC + tumour-infiltrating)
+  raw_path: data/external/scrna/GSE139324
+  role: second, independent external validation reference (16_external_validation_and_generalisation) -- deliberately different from GSE103322 to avoid re-deriving the same result on the same reference
+  active: true
+
+HNSCC_bulk_TCGA:
+  dataset_id: TCGA-HNSC
+  accession: TCGA-HNSC
+  source: UCSC Xena (GDC hub)
+  publication: TCGA_Network_Nature_2015
+  publication_pmid: "25631445"
+  assay: bulk RNA-seq (STAR-aligned, GDC-harmonised hg38)
+  cohort: 566 tumour samples, real clinical and survival annotation
+  raw_path: data/external/bulk/TCGA-HNSC
+  role: bulk ecosystem-signature external validation (16_external_validation_and_generalisation)
+  active: true
+
+Independent_spatial_breast_janesick2023:
+  dataset_id: Xenium_Janesick_BreastCancer_Rep1
+  accession: GSE243280
+  accession_note: >-
+    GSE243280 is the SuperSeries cited in the paper's own Data
+    Availability statement; it comprises two SubSeries, GSE243168
+    (Xenium) and GSE243275 (scRNA-seq and Visium). The Rep1 sample
+    used here (GSM7780153) belongs to GSE243168. GSE243275 was
+    recorded here previously in error -- it contains no Xenium
+    samples. Corrected 2026-07-19; verified directly against the
+    live GEO record.
+  source: 10x Genomics public dataset / GEO
+  publication: Janesick_et_al_Nature_Communications_2023
+  publication_doi: 10.1038/s41467-023-43458-x
+  assay: spatial
+  platform: 10x Xenium (In Situ, production pipeline v1.0.1)
+  cohort: FFPE human breast cancer, 167,780 single cells (not HNSCC -- a real, deliberately different cancer type on the same real platform, chosen because no public HNSCC single-cell spatial dataset with real clonal/lineage information was found)
+  raw_path: data/external/spatial/Xenium_Janesick_BreastCancer_Rep1
+  role: real, independent test of the calibrated null-model framework's generalisation beyond the primary cohort (q1_framework_generalisation, 16_external_validation_and_generalisation)
+  active: true
+
+Independent_spatial_colorectal_deoliveira2025:
+  dataset_id: Xenium_Oliveira_ColorectalCancer_P1
+  accession: GSE280314
+  source: 10x Genomics public dataset / GEO (Xenium subseries of SuperSeries GSE280318)
+  publication: de_Oliveira_et_al_Nature_Genetics_2025
+  publication_doi: 10.1038/s41588-025-02193-3
+  assay: spatial
+  platform: 10x Xenium (In Situ, Xenium Onboard Analysis v2.0.0)
+  cohort: FFPE human colorectal cancer, sample P1, 307,762 single cells (Xenium Human Colon Gene Expression Panel, 322 genes, supplemented with 100 additional immune-population genes -- not HNSCC, not breast; a second, independent real cancer type on the same real single-cell-resolution platform, added to test whether q1_framework_generalisation holds across more than one independent real tissue)
+  raw_path: data/external/spatial/Xenium_Oliveira_ColorectalCancer_P1
+  role: second, independent test of the calibrated null-model framework's generalisation beyond the primary cohort and the breast-cancer dataset (q1_framework_generalisation, 16_external_validation_and_generalisation, added post hoc -- see docs/analysis_amendments.md)
+  active: true

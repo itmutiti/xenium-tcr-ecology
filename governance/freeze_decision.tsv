@@ -1,0 +1,2 @@
+taxonomy_version_evaluated	decision	resulting_version	all_programs_transfer	overall_spearman_rho	overall_spearman_pvalue	flagged_states	rule
+v1_provisional	freeze	v1_provisional	True	0.4642857142857144	0.29393410760025196	Ambiguous;Cycling	freeze iff (all `12_external_checkpoint_validation/01_test_transcriptional_program_transfer.py` programs transfer) AND (`12_external_checkpoint_validation/02_quantify_directional_consistency.py` overall Spearman rho > 0); revise otherwise

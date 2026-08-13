@@ -1,0 +1,175 @@
+# Structured, GEO-sourced sample manifest input, feeding
+# scripts/01_project_setup_and_governance/01_build_sample_manifest.py.
+#
+# PROVENANCE: every field below was fetched directly from the individual
+# GSM SOFT-format text records at
+# https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=<GSM>&targ=self&view=brief&form=text
+# on 2026-07-10 (all 18 GSM accessions under GSE300147, fetched
+# individually and verbatim -- not inferred, not carried over from the
+# earlier PMC-derived cohort summary). Internal consistency check: 18
+# records resolve to exactly 10 HNSCC patients (7 with two runs = technical
+# replicates, 3 with one run) = 17 HNSCC sections, plus 1 non-HNSCC
+# ameloblastoma specimen (patient numbered 10 in GEO, GSM9054488) -- this
+# matches the source paper's own reported cohort facts, which is strong
+# evidence this GEO-level extraction is accurate, but the raw GSM text
+# itself has not been separately re-read by a human. Spot-check a few
+# records directly if this
+# manifest drives a real download in Raw Data Ingestion.
+#
+# p16_ihc_status is GEO's own field name and is a clinical IHC surrogate for
+# HPV status, not the molecular Xenium HPV16-E5 probe signal -- `15_hpv_stratified_analysis/00_validate_hpv_metadata_and_probe_signal.py`
+# (validate_hpv_metadata_and_probe_signal) cross-checks this field against
+# that separate molecular readout once Raw Data Ingestion+ data exists. Do not conflate
+# the two.
+
+source:
+  accession: GSE300147
+  fetched_via: "Individual GSM SOFT-format text records via NCBI GEO"
+  fetched_date: "2026-07-10"
+  compiled_by: "Irvine Tatenda Mutiti"
+
+samples:
+  - gsm_accession: GSM9054471
+    patient_number: 1
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Recurrent
+    smoking_pack_years: 50
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054472
+    patient_number: 9
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Primary
+    smoking_pack_years: 10
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054473
+    patient_number: 9
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Primary
+    smoking_pack_years: 10
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054474
+    patient_number: 12
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Primary
+    smoking_pack_years: 44
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054475
+    patient_number: 12
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Primary
+    smoking_pack_years: 44
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054476
+    patient_number: 13
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Recurrent
+    smoking_pack_years: 0
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054477
+    patient_number: 13
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Recurrent
+    smoking_pack_years: 0
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054478
+    patient_number: 15
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 0
+    tumour_resection_site: Oral Cavity
+  - gsm_accession: GSM9054479
+    patient_number: 17
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 40
+    tumour_resection_site: Oral Cavity
+  - gsm_accession: GSM9054480
+    patient_number: 17
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 40
+    tumour_resection_site: Oral Cavity
+  - gsm_accession: GSM9054481
+    patient_number: 19
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 80
+    tumour_resection_site: Larynx
+  - gsm_accession: GSM9054482
+    patient_number: 19
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 80
+    tumour_resection_site: Larynx
+  - gsm_accession: GSM9054483
+    patient_number: 20
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Negative
+    recurrence_status: Primary
+    smoking_pack_years: 42
+    tumour_resection_site: Hypopharynx
+  - gsm_accession: GSM9054484
+    patient_number: 20
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Negative
+    recurrence_status: Primary
+    smoking_pack_years: 42
+    tumour_resection_site: Hypopharynx
+  - gsm_accession: GSM9054485
+    patient_number: 23
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: 45
+    tumour_resection_site: Oral Cavity
+  - gsm_accession: GSM9054486
+    patient_number: 28
+    run_number: 1
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Recurrent
+    smoking_pack_years: 0
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054487
+    patient_number: 28
+    run_number: 2
+    specimen_type: HNSCC tumor
+    p16_ihc_status: Positive
+    recurrence_status: Recurrent
+    smoking_pack_years: 0
+    tumour_resection_site: Oropharynx
+  - gsm_accession: GSM9054488
+    patient_number: 10
+    run_number: 1
+    specimen_type: Ameloblastoma
+    p16_ihc_status: "N/A"
+    recurrence_status: Primary
+    smoking_pack_years: "N/A"
+    tumour_resection_site: Oral Cavity

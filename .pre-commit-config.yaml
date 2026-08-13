@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        # data/raw/.gitkeep and data/staged/.gitkeep are deliberately made
+        # read-only by scripts/02_raw_data_ingestion/06_freeze_raw_data_snapshot.sh
+        # (raw-data integrity freeze); the fixer's unconditional rb+ open
+        # otherwise fails with PermissionError even though the files
+        # already satisfy the rule (0 bytes, nothing to fix).
+        exclude: ^data/(raw|staged)/\.gitkeep$
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=5000]
+      - id: detect-private-key
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+
+  - repo: local
+    hooks:
+      - id: strip-notebook-output
+        name: Strip notebook output (notebooks/exploratory_only only)
+        entry: jupyter nbconvert --clear-output --inplace
+        language: system
+        files: ^notebooks/exploratory_only/.*\.ipynb$

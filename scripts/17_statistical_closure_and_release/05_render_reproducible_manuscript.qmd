@@ -1,0 +1,142 @@
+---
+title: "Spatial clonal T-cell ecology in HNSCC: methods and results supplement"
+subtitle: "Reproducible synthesis of prespecified primary analyses (Q1-Q3, HPV) and external validation"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+  html:
+    toc: true
+---
+
+<!--
+`17_statistical_closure_and_release/05_render_reproducible_manuscript.qmd`
+
+Scope: this document is a factual methods-and-results supplement,
+synthesised directly from this project's already-completed,
+governance-documented analyses (frozen by
+`17_statistical_closure_and_release/00_freeze_primary_results.py`, gatekept by `17_statistical_closure_and_release/01_control_multiplicity_and_report_effects.R`). It does not include
+an Introduction/Discussion/literature-contextualisation narrative,
+since that needs scientific judgement about significance and framing
+this synthesis script cannot make. Every number below is drawn directly
+from a governance registry file or frozen release artefact, not
+re-derived or estimated for this document.
+
+Primary output: manuscript/manuscript.pdf
+-->
+
+## Data and cohort
+
+The primary cohort comprises 18 Xenium In Situ sections from 10 head-
+and-neck squamous cell carcinoma (HNSCC) patients (McCord et al. 2026,
+Science Immunology, companion cohort GSE300147/GSE287301), including 7
+patients profiled as technical replicates across two independent runs,
+and one Ameloblastoma specimen (patient P10) explicitly excluded from
+all HNSCC-specific analyses. QC
+retained 1,120,780 of 1,186,916 segmented cells across 18 sections
+. Patient-specific TCR
+probes targeting CDR3 regions enabled direct spatial clonal T-cell
+tracking; an empirical false-positive rate (median 0.216) was estimated
+from three independent negative controls before any clone call was
+trusted.
+
+## Software framework calibration (Q1)
+
+Three spatial null models (constrained permutation, degree-preserving,
+graph-preserving) were implemented and calibrated against synthetic
+ground truth with known, controllable effect sizes (10 synthetic
+patients) before being trusted
+on clones. The registered `q1_framework_generalisation` claim -- that
+this calibration generalises beyond the primary cohort -- was tested by
+applying the identical null-model machinery to an independent,
+single-cell-resolution Xenium dataset (Janesick et al. 2023, Nature
+Communications, FFPE human breast cancer, CC BY 4.0). All three null
+models' Type I error 95% Clopper-Pearson confidence intervals
+overlapped the primary cohort's already-established bounds
+,
+confirming the framework's calibration is not an artefact specific to
+the primary cohort's own spatial structure.
+
+## Clone ecological structure (Q2)
+
+A prespecified dual-criterion test (BIC and Tibshirani gap statistic,
+required to agree by design) found clone ecological structure to be
+continuous, not discrete
+. A
+three-level nested variance-partition model
+(`ecological_structure_score ~ 1 + (1 | patient_id/clone_id)`, n=261
+clone-section observations, 158 distinct clones, 10 patients) found all
+three variance components non-trivial: patient 29.3% (95% CI 2.7-52.0%),
+clone identity 20.2% (95% CI 6.6-36.7%), spatial context 50.4% (95% CI
+32.1-75.4%).
+This result was robust to clone-size confounding, leave-one-patient-out
+resampling (10/10 folds stable), and an independently resegmented
+reference subset.
+
+## Barrier topology (Q3)
+
+A prespecified nested mixed model tested whether fibroblast/suppressive-
+myeloid barrier topology explains residual variance in clone-tumour
+engagement beyond cell-intrinsic state and niche composition (n=152
+clone-section rows with a defined barrier fraction). Suppressive-
+myeloid barrier fraction significantly predicted lower engagement
+(estimate -0.343, 95% CI -0.558 to -0.151, likelihood-ratio test
+p=0.0069);
+fibroblast barrier fraction was not individually significant. This
+finding was direction-concordant with an independent published estimate
+(Grout et al. 2022, Cancer Discovery, Pearson r=-0.48 between stromal
+alphaSMA density and T-cell infiltration), though this project's raw
+bivariate correlation was substantially weaker (r=-0.079) -- the
+significant model-adjusted effect only emerges after controlling for
+state and niche composition.
+
+## HPV-stratified analysis
+
+Clinical p16 immunohistochemistry status was cross-validated against
+Xenium HPV16 E6/E7 oncogene probe signal before any contrast was
+defined, surfacing two clinically p16-positive patients with near-zero
+molecular signal and one clinically-untested patient with an
+unambiguous positive signal. The resulting validated primary contrast (n=4 HPV-positive
+vs. n=4 HPV-negative, 2 patients excluded as discordant) was
+prospectively shown to require an implausibly large effect size (Cohen's
+d>=2.5) for 80% power.
+Consistent with this prediction, 0/25 patient-level composition and
+ecosystem/structure comparisons reached BH-corrected significance;
+leave-one-out and
+bootstrap fragility checks nonetheless showed two directionally stable,
+exploratory leads (T-cell and Erythroid composition) that this
+deliberately capped, small-sample design could not formally confirm.
+
+## External validation summary
+
+Two independent HNSCC reference datasets, distinct from all datasets
+used in discovery-phase analyses, were acquired and analysed: GSE139324
+(Cillo et al. 2020, Immunity; 26 tumour-infiltrating-lymphocyte samples,
+47,801 T cells identified) and TCGA-HNSC (566 bulk RNA-seq samples). All
+4 tested T-cell programme gene signatures (cytotoxicity, exhaustion,
+proliferation, Treg) showed significant module coherence in GSE139324
+(p=0.001 each, exceeding the pre-declared 3/4 success bar). Ecosystem-
+derived signatures projected onto TCGA-HNSC showed strong, expected-
+direction correlation with an independent immune-infiltration marker
+(PTPRC/CD45) for 2/3 pre-specified predictions
+. A claim-by-
+claim comparison against the source publication's 11 catalogued
+findings found 5 reproduced-and-extended, 2 documented divergences, 1
+deliberate methodological choice, 1 addressed limitation, and 2 claims
+outside this project's data scope
+.
+
+## Statistical gatekeeping
+
+Of the 5 prespecified primary claims, 4 passed their pre-declared
+success criterion; the HPV contrast did not (by design, not by
+contradiction), consistent with its prospective power analysis
+(`results/statistical_summary.tsv`).
+
+## Software and data provenance
+
+All analyses were implemented in the `xenium_tcr_ecology` Python/R
+package, with a pre-registration and analysis registry tracked in
+`governance/analysis_registry.tsv`. Primary results were frozen with
+SHA-256 integrity manifests (`data/releases/final_primary/MANIFEST.json`)
+before any downstream figure or table generation.

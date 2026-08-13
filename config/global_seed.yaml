@@ -1,0 +1,7 @@
+default_seed: 42
+seed_scope:
+  - python
+  - numpy
+  - scipy
+  - r
+  - snakemake_benchmarks

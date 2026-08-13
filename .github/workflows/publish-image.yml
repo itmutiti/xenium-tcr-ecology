@@ -1,0 +1,85 @@
+name: Publish byte-pinned container image
+
+# Builds the xenium-tcr-ecology conda/R analysis environment from the
+# human-edited spec (environment/conda/main.yml), locks it to an explicit,
+# byte-pinned spec (environment/conda/environment.lock -- deliberately
+# gitignored, see EXECUTION_MANUAL.md's "Reproducibility" section), builds
+# containers/Dockerfile from that lock file, and pushes the result to
+# GitHub Container Registry.
+#
+# This is what makes "byte-identical reproduction" a one-command
+# `docker pull` for a reviewer, rather than something contingent on the
+# author's own machine already having environment.lock -- see
+# EXECUTION_MANUAL.md's "Containerised (Docker) -- the byte-identical
+# path" section.
+#
+# Only runs on a published GitHub Release or manual dispatch -- not on
+# every push -- since building the full conda/R environment from scratch
+# takes substantial time (bioconda + CRAN resolve) and there is no reason
+# to pay that cost outside an actual release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to build and push (e.g. v1.0.0)"
+        required: true
+
+jobs:
+  build-and-push:
+    name: Build byte-pinned image and push to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Miniforge (conda/mamba)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          channels: conda-forge,bioconda
+          channel-priority: strict
+          activate-environment: xenium-tcr-ecology
+
+      - name: Build the analysis environment from the human-edited spec
+        shell: bash -el {0}
+        run: mamba env update -n xenium-tcr-ecology -f environment/conda/main.yml
+
+      - name: Lock the built environment to a byte-pinned explicit spec
+        shell: bash -el {0}
+        run: bash scripts/01_project_setup_and_governance/03_lock_software_environments.sh "${{ github.workspace }}"
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute lowercase image repository (GHCR requires lowercase)
+        id: repo
+        run: echo "name=$(echo 'ghcr.io/${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: containers/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.repo.outputs.name }}:${{ steps.tag.outputs.tag }}
+            ${{ steps.repo.outputs.name }}:latest

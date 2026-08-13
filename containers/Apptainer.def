@@ -1,0 +1,226 @@
+Bootstrap: docker
+# Pinned to the identical immutable digest as containers/Dockerfile --
+# see that file's header comment and docs/reproducibility_investigation.md
+# for why: an unpinned :latest tag is not provably identical between two
+# builds taken at different times, which is a real, tested hypothesis for
+# a numerical discrepancy found between this route and the Docker route.
+From: condaforge/miniforge3@sha256:8edc74dee5b29511a9c1a8941c77efbf438b47edffb6320ab8675dc06bd618c2
+
+# Frozen-release Apptainer/Singularity image for xenium-tcr-ecology --
+# the fallback execution route (tools/run_pipeline.sh: Docker preferred,
+# this second, native conda/Snakemake the final fallback), used
+# automatically when Docker is unavailable or unusable, and useful in
+# its own right for HPC and other restricted Linux environments where
+# unprivileged builds are the norm.
+#
+# Single environment source of truth, same as containers/Dockerfile:
+# built from the byte-pinned, committed environment/conda/environment.lock
+# (a `conda list --explicit --md5` export, platform-pinned to linux-64 --
+# the only platform this image ever builds on, so committing it carries
+# none of the cross-platform-drift risk the native route's own fresh
+# `main.yml` resolve has; see EXECUTION_MANUAL.md "Environment setup").
+# Not a re-resolve of main.yml and not a second, independently-
+# maintained package list. Unlike containers/Dockerfile, this file
+# requires environment.lock to exist rather than falling back to a
+# fresh main.yml resolve if it's absent -- Apptainer's %files section
+# has no equivalent to Docker COPY's optional-glob pattern, and since
+# the lock is now committed (not gitignored), it is not expected to
+# ever genuinely be absent on a real checkout. Regenerate it with
+# scripts/01_project_setup_and_governance/03_lock_software_environments.sh
+# if it ever needs updating.
+#
+# Two real environment gaps found while auditing containers/Dockerfile
+# for this image (both fixed here and in Dockerfile identically, so
+# both container formats derive from the same corrected recipe):
+# (1) `environment.lock` only ever captures conda-managed packages --
+# `markdown`, `xhtml2pdf`, and `build` are genuinely provided by
+# `pip install -e ".[dev]"` (pyproject.toml), not conda, in the real
+# working environment (despite also being redundantly listed in
+# environment/conda/main.yml, where they do not actually resolve).
+# Installing the full `.[dev]` extra here, exactly matching the
+# documented native setup route, is the fix -- not a container-specific
+# shortcut.
+# (2) `pdftocairo` (poppler-utils), used for PNG/SVG figure export, was
+# never actually present in the conda environment on the development
+# machine -- it worked only because the host OS happened to already
+# have system poppler-utils installed via apt, never guaranteed by this
+# project's own setup. Installed explicitly as a system package below.
+#
+# What this image deliberately does NOT contain: the repository's
+# mutable working tree (scripts/, workflow/, config/, docs/, tests/,
+# governance/, manuscript/, data/, results/, reports/, figures/,
+# tables/, release/). Only the minimal, stable package definition
+# (pyproject.toml, README.md, src/) needed for `pip install -e .` to
+# have something to attach to is copied in at build time -- the rest of
+# the repository, and all data, are bind-mounted at runtime. This image
+# packages and validates software only; it never executes the pipeline
+# during build.
+
+%files
+    environment/conda/environment.lock /opt/environment.lock
+    pyproject.toml /workspace/pyproject.toml
+    README.md /workspace/README.md
+    src /workspace/src
+
+%post -c /bin/bash
+    # Apptainer always executes section scriptlets by invoking an
+    # interpreter on the assembled script file (never via the script's
+    # own shebang line -- a `#!/bin/bash` first line here is silently
+    # treated as just a comment and ignored). The interpreter defaults to
+    # /bin/sh (dash on Debian/Ubuntu bases), which doesn't support `set
+    # -o pipefail`; `-c /bin/bash` on the section header is the correct,
+    # documented way to override it. Found by the first real native
+    # `apptainer build` of this file -- the previously-tested
+    # docker-daemon:// conversion route never exercises %post at all.
+    set -Eeuo pipefail
+
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends poppler-utils
+    rm -rf /var/lib/apt/lists/*
+
+    # /opt, not /tmp: apptainer.conf's default `mount tmp = yes` bind-
+    # mounts the *host's* real /tmp over the container's during %post,
+    # silently shadowing anything %files placed at /tmp/... before this
+    # section runs (confirmed directly -- the container saw the host's
+    # actual /tmp contents, not a fresh one). /opt is not one of
+    # Apptainer's default-mounted paths. Found by the first real native
+    # `apptainer build` of this file.
+    conda create --name xenium-tcr-ecology --file /opt/environment.lock
+    conda clean -afy
+    rm -f /opt/environment.lock
+
+    cd /workspace
+    conda run -n xenium-tcr-ecology pip install -e ".[dev]"
+
+    # Safe locale/thread defaults baked in (overridable at runtime via
+    # %environment's use of ${VAR:-default} below, or by exporting the
+    # same names before `apptainer exec`/`run`).
+    mkdir -p /etc/apptainer-defaults
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export CONDA_DEFAULT_ENV=xenium-tcr-ecology
+    export CONDA_PREFIX=/opt/conda/envs/xenium-tcr-ecology
+    export PATH="/opt/conda/envs/xenium-tcr-ecology/bin:/opt/conda/bin:${PATH}"
+    # Deliberately NOT propagating the host's PYTHONPATH/R_LIBS/other
+    # Conda variables -- the environment above is self-contained and
+    # must not silently depend on anything from the invoking shell. Run
+    # with `--cleanenv` to verify this (see tools/run_with_apptainer.sh).
+    unset PYTHONPATH
+    unset R_LIBS R_LIBS_USER R_LIBS_SITE
+    unset CONDA_SHLVL CONDA_PROMPT_MODIFIER CONDA_PYTHON_EXE CONDA_EXE
+    export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+    export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+    export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+    export TMPDIR="${APPTAINER_TMPDIR:-/tmp}"
+
+%runscript
+    if [ "$#" -eq 0 ]; then
+        echo "xenium-tcr-ecology Apptainer image -- run a command explicitly, e.g.:"
+        echo "  apptainer exec --cleanenv --bind \"\$PWD:/workspace\" --pwd /workspace \\"
+        echo "    xenium-tcr-ecology.sif conda run -n xenium-tcr-ecology snakemake --cores 8"
+        echo
+        echo "See tools/run_with_apptainer.sh for the documented, tested wrapper."
+        exit 0
+    fi
+    # Wrapped with `conda run` explicitly rather than relying on PATH
+    # alone -- verified directly against a real build: a SIF converted
+    # from the Dockerfile-built OCI image only exposes the environment's
+    # executables via its converted Docker ENTRYPOINT (`apptainer run`)
+    # or an explicit `conda run` wrapper, not on a bare `apptainer exec`'s
+    # PATH. This makes `apptainer run`/`exec ... "$@"` work identically
+    # regardless of which supported build route produced the image.
+    exec conda run --no-capture-output -n xenium-tcr-ecology "$@"
+
+%labels
+    org.opencontainers.image.title xenium-tcr-ecology
+    org.opencontainers.image.description Optional Apptainer execution route for the xenium-tcr-ecology computational workflow (HNSCC Xenium spatial TCR ecology). Not required to reproduce the analysis -- see the native Conda/Snakemake route.
+    org.opencontainers.image.source containers/Apptainer.def
+    org.opencontainers.image.licenses MIT
+
+%help
+    xenium-tcr-ecology -- optional Apptainer execution route
+    =========================================================
+
+    This image packages the pinned Conda/R environment
+    (environment/conda/environment.lock) that the native
+    `mamba env create -f environment/conda/main.yml` route also
+    produces. It is an additive, optional execution route for HPC and
+    other restricted Linux environments -- the native route remains
+    canonical and is not superseded by this image.
+
+    The repository and all data are bind-mounted at runtime, never
+    baked into the image. Build:
+
+        apptainer build xenium-tcr-ecology.sif containers/Apptainer.def
+
+    Run the full pipeline (from the repository root):
+
+        apptainer exec --cleanenv --bind "$PWD:/workspace" --pwd /workspace \
+            xenium-tcr-ecology.sif conda run -n xenium-tcr-ecology snakemake --cores 8
+
+    Or use the documented wrapper, which binds every required directory
+    and sets a configurable cache location:
+
+        tools/run_with_apptainer.sh snakemake --cores 8
+
+    Run the lightweight self-test (no datasets, no expensive analysis):
+
+        apptainer test xenium-tcr-ecology.sif
+
+    See docs/execution_manual/EXECUTION_MANUAL.md "Reproducibility" for
+    full documentation, bind-mount requirements, and known limitations.
+
+%test
+    # Unlike %post, Apptainer's build-time test-script execution does not
+    # honour a `-c <shell>` section argument (confirmed directly: it
+    # fails build with "Illegal option" even though the identical `-c
+    # /bin/bash` works for %post). And conda's own activate.d/deactivate.d
+    # hooks (pulled in transitively, e.g. libtorch's) use bash's `[[`,
+    # which breaks under plain POSIX `sh` too. Re-exec'ing into bash via
+    # this heredoc (rather than the section argument) sidesteps the first
+    # issue while still giving the rest of this script a real bash.
+    exec /bin/bash <<'TESTSCRIPT'
+    set -Eeuo pipefail
+    source /opt/conda/etc/profile.d/conda.sh
+    conda activate xenium-tcr-ecology
+    # numba's on-disk function cache (used by scanpy/squidpy) needs a
+    # writable location. /opt (and the rest of the image root) is
+    # read-only by the time this build-time self-test runs -- confirmed
+    # directly, "Read-only file system" -- so cache under /tmp instead,
+    # which is a genuine (host-backed) writable bind mount both now and
+    # at real runtime, unlike the rest of the SIF's squashed rootfs.
+    export NUMBA_CACHE_DIR=/tmp/xenium-tcr-ecology-numba-cache
+    mkdir -p "$NUMBA_CACHE_DIR"
+
+    echo "[TEST] Python: $(python3 --version)"
+    python3 -c "
+import xenium_tcr_ecology
+import numpy, pandas, scipy, sklearn, statsmodels
+import anndata, scanpy, squidpy, spatialdata, spatialdata_io
+import networkx, pyarrow, openpyxl, yaml, requests
+import markdown, xhtml2pdf
+print('[TEST] xenium_tcr_ecology', xenium_tcr_ecology.__version__)
+print('[TEST] scanpy', scanpy.__version__, '| squidpy', squidpy.__version__, '| spatialdata', spatialdata.__version__)
+"
+
+    echo "[TEST] R: $(Rscript --version 2>&1)"
+    Rscript -e '
+suppressPackageStartupMessages({
+  library(tidyverse); library(lme4); library(arrow); library(Matrix)
+  library(yaml); library(testthat)
+})
+cat("[TEST] R packages load OK\n")
+'
+
+    echo "[TEST] Snakemake: $(snakemake --version)"
+    command -v snakemake >/dev/null || { echo "[TEST] FAIL: snakemake not on PATH"; exit 1; }
+    command -v python3 >/dev/null || { echo "[TEST] FAIL: python3 not on PATH"; exit 1; }
+    command -v Rscript >/dev/null || { echo "[TEST] FAIL: Rscript not on PATH"; exit 1; }
+    command -v pdftocairo >/dev/null || { echo "[TEST] FAIL: pdftocairo not on PATH"; exit 1; }
+    echo "[TEST] pdftocairo: $(pdftocairo -v 2>&1 | head -1)"
+
+    echo "[TEST] All lightweight checks passed."
+TESTSCRIPT

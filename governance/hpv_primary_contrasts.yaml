@@ -1,0 +1,38 @@
+# Written by scripts/15_hpv_stratified_analysis/01_prespecify_primary_hpv_contrasts.py (`15_hpv_stratified_analysis/01_prespecify_primary_hpv_contrasts.py`), before any HPV
+# hypothesis test is run. A maximum of two entries are permitted here for this project;
+# every other HPV comparison anywhere in the pipeline is exploratory only and must not reference
+# hpv_status in a confirmatory model formula.
+primary_contrasts:
+- contrast_id: hpv_validated_positive_vs_negative
+  registered_date: '2026-07-11'
+  model: null
+  minimum_detectable_effect: 2.5
+  positive_group:
+    patient_ids:
+    - P09
+    - P12
+    - P13
+    - P17
+    criteria:
+    - confirmed_positive
+    - probe_positive_clinically_untested
+  negative_group:
+    patient_ids:
+    - P15
+    - P19
+    - P20
+    - P23
+    criteria:
+    - confirmed_negative
+    - confirmed_negative_no_molecular_verification
+    - presumed_negative_unverifiable
+    - probe_negative_clinically_untested
+  excluded_patients:
+    patient_ids:
+    - P01
+    - P28
+    reason: discordant or unverifiable clinical/molecular HPV evidence
+  n_positive: 4
+  n_negative: 4
+  n_excluded: 2
+  source: metadata/hpv_status_validated.tsv (`15_hpv_stratified_analysis/00_validate_hpv_metadata_and_probe_signal.py`)

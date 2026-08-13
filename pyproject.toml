@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xenium-tcr-ecology"
+version = "1.0.0"
+description = "A calibrated, generalisable framework for clone-resolved spatial ecology in HNSCC Xenium data."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Irvine Tatenda Mutiti" }]
+
+# Runtime dependencies of the *package* (src/xenium_tcr_ecology/) only.
+# The full analysis environment (scanpy, squidpy, spatialdata, snakemake,
+# R packages, ...) is specified separately in environment/conda/main.yml,
+# kept distinct from the package's own runtime dependencies.
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "pyyaml>=6.0",
+    "markdown>=3.0",   # src/xenium_tcr_ecology/release/manuscript.py imports this unconditionally
+                       # at module level (renders the manuscript .qmd source to PDF when no
+                       # Quarto/pandoc/LaTeX install is present -- see that module's docstring)
+    "xhtml2pdf>=0.2",  # paired with markdown above, same rendering path, same module
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff==0.6.9",   # pinned to match .pre-commit-config.yaml's ruff-pre-commit rev exactly --
+                     # an unbounded >= here let CI's `pip install -e ".[dev]"` (which bypasses
+                     # pre-commit's own pinned hook) drift to whatever ruff is newest at install
+                     # time, disagreeing with the pre-commit hook and with environment/conda/main.yml
+    "black==24.10.0",  # pinned for the same reason, matching .pre-commit-config.yaml's black rev
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "build>=1.0",  # src/xenium_tcr_ecology/release/software_package.py shells out to
+                   # `python -m build` (17_statistical_closure_and_release/07_build_documented_
+                   # software_package.py) -- found missing during the second Vast.ai clean-room
+                   # run: this step had never actually been exercised end-to-end before.
+    # `tests/unit`/`tests/simulation` import these directly (matplotlib, anndata, scanpy,
+    # spatialdata, scipy, shapely, tifffile) even though they're not the *package's* own
+    # runtime dependencies -- CI's `pip install -e ".[dev]"` needs them to collect the test
+    # suite at all. Lower bounds match the versions already clean-room verified in
+    # environment/conda/environment.lock; found missing the same way as `build` above, on
+    # this repository's first real CI run (that job had never actually executed before).
+    "scipy>=1.17",
+    "anndata>=0.12",
+    "shapely>=2.1",
+    "spatialdata>=0.7",
+    "matplotlib>=3.11",
+    "scanpy>=1.11",
+    "tifffile>=2026.3",
+    "squidpy>=1.8",
+    "fast_matrix_market>=1.7",
+    "python-igraph>=1.0",  # scanpy's Leiden clustering backend (sc.tl.leiden)
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/simulation"]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+target-version = "py311"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

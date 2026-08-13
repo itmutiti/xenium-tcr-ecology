@@ -1,0 +1,75 @@
+# Structured data dictionary input, feeding
+# scripts/01_project_setup_and_governance/02_generate_data_dictionary.py.
+#
+# Scope, deliberately: only metadata/sample_manifest.tsv is defined here,
+# because it is the only metadata table that exists at Project Setup and Governance. Later
+# phases (feature_annotation.tsv in Preprocessing and Normalisation, clone_ascertainment.tsv in
+# TCR Clonal Analysis, ...) add their own "table" block here when that phase is
+# implemented and the real column set is known -- fabricating field
+# definitions now for tables that don't exist yet would drift from reality
+# the moment those phases are actually built.
+
+tables:
+  - table_name: sample_manifest.tsv
+    produced_by: scripts/01_project_setup_and_governance/01_build_sample_manifest.py
+    fields:
+      - field: patient_id
+        unit: categorical
+        allowed_values: "P<NN>, zero-padded GEO patient number (e.g. P01, P09)"
+        missingness_code: none (always present)
+        derivation_rule: "Derived from patient_number in config/geo/sample_manifest_input.yaml as f'P{n:02d}'."
+      - field: section_id
+        unit: categorical
+        allowed_values: "<patient_id>_run<N>"
+        missingness_code: none (always present)
+        derivation_rule: "Derived as f'{patient_id}_run{run_number}'. Globally unique per Xenium section."
+      - field: gsm_accession
+        unit: categorical
+        allowed_values: "GEO GSM accession, e.g. GSM9054471"
+        missingness_code: none (always present)
+        derivation_rule: "Verbatim from GEO, fetched per-sample. See config/geo/sample_manifest_input.yaml provenance header."
+      - field: run_number
+        unit: integer
+        allowed_values: "1 or 2"
+        missingness_code: none (always present)
+        derivation_rule: "Verbatim from GEO sample title (e.g. 'Patient 9, run 2')."
+      - field: specimen_type
+        unit: categorical
+        allowed_values: "HNSCC tumor | Ameloblastoma"
+        missingness_code: none (always present)
+        derivation_rule: "Verbatim from GEO source_name field."
+      - field: included_in_primary_hnscc_cohort
+        unit: boolean
+        allowed_values: "True | False"
+        missingness_code: none (always present)
+        derivation_rule: "True iff specimen_type == 'HNSCC tumor'. The single Ameloblastoma specimen is always False -- exploratory contrast only, never pooled into HNSCC inference."
+      - field: is_technical_replicate
+        unit: boolean
+        allowed_values: "True | False"
+        missingness_code: none (always present)
+        derivation_rule: "True iff this patient_number has more than one run in the input. Computed from the full sample set, not stated per-row in the raw input, to prevent the input and this flag from silently disagreeing."
+      - field: hpv_p16_positive
+        unit: boolean
+        allowed_values: "True | False"
+        missingness_code: "N/A p16_ihc_status maps to False here, but is distinguishable via the separate p16_ihc_status column -- do not treat hpv_p16_positive == False as evidence of a negative test; check p16_ihc_status."
+        derivation_rule: "True iff p16_ihc_status == 'Positive'. This is a clinical IHC surrogate for HPV status, NOT the molecular Xenium HPV16-E5 probe signal -- see `15_hpv_stratified_analysis/00_validate_hpv_metadata_and_probe_signal.py` (validate_hpv_metadata_and_probe_signal), which cross-checks the two once Raw Data Ingestion+ data exists."
+      - field: p16_ihc_status
+        unit: categorical
+        allowed_values: "Positive | Negative | N/A"
+        missingness_code: "N/A (as a literal category, not a blank -- GEO reports this explicitly, most often for non-oropharyngeal sites where p16 IHC is not standard of care)"
+        derivation_rule: "Verbatim from GEO characteristics_ch1 'p16 status' field."
+      - field: recurrence_status
+        unit: categorical
+        allowed_values: "Primary | Recurrent"
+        missingness_code: none observed in this cohort
+        derivation_rule: "Verbatim from GEO characteristics_ch1 'recurrence' field."
+      - field: smoking_pack_years
+        unit: "pack-years (numeric), or the literal string 'N/A'"
+        allowed_values: "0 or positive number; 'N/A' for the Ameloblastoma specimen (not a smoking-related tumour)"
+        missingness_code: "'N/A' literal string, not a blank cell -- do not coerce to 0, which would misrepresent unknown/inapplicable as never-smoker."
+        derivation_rule: "Verbatim from GEO characteristics_ch1 'pack years' field."
+      - field: tumour_resection_site
+        unit: categorical
+        allowed_values: "Oropharynx | Oral Cavity | Larynx | Hypopharynx (HNSCC); Oral Cavity (Ameloblastoma, anatomically distinct from the HNSCC oral cavity cases despite the same label)"
+        missingness_code: none observed in this cohort
+        derivation_rule: "Verbatim from GEO characteristics_ch1 'site of tumor resection' field."

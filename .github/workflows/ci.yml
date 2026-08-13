@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  fast-tier:
+    name: Lint + unit + simulation tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install poppler-utils (pdftocairo)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+        # src/xenium_tcr_ecology/infra/figure_export.py shells out to
+        # pdftocairo for PDF -> PNG/SVG figure export, exercised by
+        # tests/unit/test_release_main_figures.py; not a Python package,
+        # so it can't be declared in pyproject.toml -- environment/conda/main.yml
+        # declares it for the conda-based setup path, this step is the
+        # equivalent for this plain-pip CI path.
+      - name: Install package
+        run: pip install -e ".[dev]"
+      - name: Lint (ruff)
+        run: ruff check src tools
+      - name: Format check (black)
+        run: black --check src tools tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+        # tools/run_pipeline.sh's native-backend fallback deliberately creates a
+        # *separate* Python 3.13 `.venv/` for Snakemake orchestration (kept apart
+        # from the 3.11 analysis environment -- see README.md's "Snakemake workflow
+        # orchestration runs from a separate .venv/ (Python 3.13)"), so
+        # tests/unit/test_run_pipeline_fresh_checkout.py needs a real `python3.13`
+        # on PATH to exercise that path -- adding a second setup-python step is the
+        # CI-side equivalent of the README's "get one from conda-forge" instruction.
+        # Placed after the 3.11-based install/lint/format steps above so pip installs
+        # and the console-script shims they create (pytest/black/ruff) stay bound to
+        # that Python 3.11 interpreter regardless of this later PATH change.
+      - name: Unit + simulation tests
+        run: pytest tests/unit tests/simulation -v
+
+  smoke-tier:
+    name: End-to-end DAG smoke test (tiny fixture)
+    runs-on: ubuntu-latest
+    needs: fast-tier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e ".[dev]" snakemake
+      - name: Dry-run the full DAG
+        run: snakemake -n --quiet
+      # Execution against tests/fixtures/tiny_xenium/ is enabled once
+      # that fixture exists (see tests/fixtures/tiny_xenium/README.md) and
+      # each phase's scripts are implemented against it -- until then this
+      # tier only proves the DAG itself stays valid as rules are edited.
+
+  apptainer-capability-check:
+    name: Apptainer definition validation (lightweight; skips if unavailable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate containers/Apptainer.def structure (no Apptainer install needed)
+        run: |
+          def=containers/Apptainer.def
+          for section in "%post" "%environment" "%runscript" "%test" "%labels" "%help"; do
+            grep -q "^${section}" "$def" || { echo "::error::$def is missing a $section section"; exit 1; }
+          done
+          # The image must never bake in the mutable working tree or data --
+          # only pyproject.toml/README.md/src/ are declared under %files.
+          files_block="$(sed -n '/^%files/,/^%post/p' "$def")"
+          for forbidden in "scripts" "workflow" "config" "data" "results" "reports" "figures" "tables" "manuscript" "governance" "tests" "docs"; do
+            echo "$files_block" | grep -qE "^\s*${forbidden}(/| )" && {
+              echo "::error::$def's %files copies '$forbidden' into the image -- data/results/manuscript/governance/the mutable working tree must be bind-mounted at runtime, not embedded"
+              exit 1
+            }
+          done
+          # Must not execute the pipeline during build (packaging/validation only).
+          post_block="$(sed -n '/^%post/,/^%environment/p' "$def")"
+          echo "$post_block" | grep -qE "snakemake|pytest " && {
+            echo "::error::$def's %post appears to invoke the pipeline/tests during build -- image construction must package and validate software only"
+            exit 1
+          }
+          echo "OK: containers/Apptainer.def has all required sections and embeds no working-tree/data paths."
+      - name: Shell-check the Apptainer launcher
+        run: |
+          bash -n tools/run_with_apptainer.sh
+          echo "OK: tools/run_with_apptainer.sh is syntactically valid."
+      - name: Shell-check the Docker/Apptainer/native launcher
+        run: |
+          bash -n tools/run_pipeline.sh
+          echo "OK: tools/run_pipeline.sh is syntactically valid."
+      - name: Install Apptainer (skip cleanly if unavailable on this runner)
+        id: install
+        continue-on-error: true
+        run: |
+          set -e
+          cd /tmp
+          curl -fsSL -o apptainer.deb \
+            https://github.com/apptainer/apptainer/releases/download/v1.4.0/apptainer_1.4.0_amd64.deb
+          sudo apt-get update -qq
+          sudo apt-get install -y ./apptainer.deb
+          apptainer --version
+      - name: Report Apptainer availability
+        if: steps.install.outcome != 'success'
+        run: echo "::warning::Apptainer unavailable on this runner -- SKIPPING the lightweight runtime test explicitly (not reported as a pass)."
+      - name: Lightweight Apptainer runtime sanity check (real build+run, tiny image, not this project's environment)
+        if: steps.install.outcome == 'success'
+        run: |
+          set -Eeuo pipefail
+          cat > /tmp/sanity.def <<'EOF'
+          Bootstrap: docker
+          From: alpine:latest
+          %post
+              echo "apptainer runtime sanity check" > /sanity.txt
+          %test
+              grep -q "sanity check" /sanity.txt
+          EOF
+          apptainer build /tmp/sanity.sif /tmp/sanity.def
+          apptainer test /tmp/sanity.sif
+          echo "OK: Apptainer build+test mechanics work on this runner. (The full xenium-tcr-ecology.sif build is intentionally NOT run in general CI -- see the release workflow.)"
+
+  policy-check:
+    name: Scaffold policy verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Re-run scaffold (idempotent; must not need to write anything new)
+        run: python3 tools/scaffold_repository.py
+      - name: Verify no gitignored authorial/planning material is tracked
+        run: |
+          # Catches files that were force-added (`git add -f`) despite being
+          # gitignored -- e.g. manuscript drafts, internal audit/strategy
+          # notes, docs/Journals/ -- see EXECUTION_MANUAL.md's "Repository
+          # contents" section for what belongs in this repo and why.
+          offenders="$(git ls-files --cached --ignored --exclude-standard)"
+          if [ -n "$offenders" ]; then
+            echo "::error::The following gitignored files are tracked in git (likely added with -f):"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "OK: no gitignored files are tracked."

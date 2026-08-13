@@ -1,0 +1,114 @@
+active_profile: standard
+generated_by: scripts/04_quality_control/06_define_qc_thresholds_hierarchically.R
+generated_date: '2026-08-13'
+rationale: 'Hierarchical / section-aware framework, not a single global cut-off: (1)
+  an absolute floor on transcript_counts and n_genes_detected; (2) a per-section robust
+  (median/MAD) outlier check on transcript_counts (same modified z-score convention
+  as `04_quality_control/02_detect_spatial_qc_artifacts.py`, threshold configurable
+  per profile), since sequencing/imaging depth varies meaningfully by section/batch;
+  (3) a ceiling on negative-control-probe/codeword ratio; (4) FOV-level artifact exclusion
+  applied by joining against `04_quality_control/02_detect_spatial_qc_artifacts.py`''s
+  fov_artifact_candidates.tsv at filter-application time (`04_quality_control/07_apply_qc_filters_with_audit_trail.py`),
+  not duplicated here. The ''standard'' profile was reviewed against the exclusion-rate
+  estimates below and selected on 2026-07-10.'
+profiles:
+  lenient:
+    min_transcript_counts: 5.0
+    min_genes_detected: 3.0
+    max_control_probe_ratio: 0.1
+    max_control_codeword_ratio: 0.1
+    section_relative_min_counts_z: -5.0
+  standard:
+    min_transcript_counts: 10.0
+    min_genes_detected: 3.0
+    max_control_probe_ratio: 0.05
+    max_control_codeword_ratio: 0.05
+    section_relative_min_counts_z: -3.5
+  strict:
+    min_transcript_counts: 20.0
+    min_genes_detected: 5.0
+    max_control_probe_ratio: 0.02
+    max_control_codeword_ratio: 0.02
+    section_relative_min_counts_z: -3.0
+flags:
+  no_nucleus_detected:
+    definition: nucleus_area is missing (no segmented nucleus for this cell)
+    action: flag_only
+    pooled_fraction: 0.0442
+  fov_artifact_candidate:
+    definition: cell's FOV is flagged in reports/qc/spatial_artifact_masks/fov_artifact_candidates.tsv
+    action: exclude
+    applied_at: 04_quality_control/07_apply_qc_filters_with_audit_trail.py
+    n_fovs_total: 630
+    n_fovs_flagged: 84
+    estimated_transcript_volume_fraction_affected: 0.0189
+sensitivity_analysis:
+  n_cells_total: 1186916
+  pooled:
+    lenient:
+      n_excluded: 15815
+      fraction_excluded: 0.0133
+    standard:
+      n_excluded: 33705
+      fraction_excluded: 0.0284
+    strict:
+      n_excluded: 69798
+      fraction_excluded: 0.0588
+  per_section:
+    lenient:
+      P01_run1: 0.0108
+      P09_run1: 0.0025
+      P09_run2: 0.0006
+      P10_run1: 0.0092
+      P12_run1: 0.0017
+      P12_run2: 0.0024
+      P13_run1: 0.0247
+      P13_run2: 0.0089
+      P15_run1: 0.0067
+      P17_run1: 0.028
+      P17_run2: 0.0248
+      P19_run1: 0.011
+      P19_run2: 0.0174
+      P20_run1: 0.0174
+      P20_run2: 0.029
+      P23_run1: 0.0338
+      P28_run1: 0.0614
+      P28_run2: 0.0176
+    standard:
+      P01_run1: 0.0279
+      P09_run1: 0.0085
+      P09_run2: 0.0016
+      P10_run1: 0.0192
+      P12_run1: 0.0031
+      P12_run2: 0.0044
+      P13_run1: 0.0683
+      P13_run2: 0.022
+      P15_run1: 0.0152
+      P17_run1: 0.0552
+      P17_run2: 0.0509
+      P19_run1: 0.024
+      P19_run2: 0.0337
+      P20_run1: 0.0407
+      P20_run2: 0.0543
+      P23_run1: 0.071
+      P28_run1: 0.1197
+      P28_run2: 0.0377
+    strict:
+      P01_run1: 0.0761
+      P09_run1: 0.0257
+      P09_run2: 0.0053
+      P10_run1: 0.0412
+      P12_run1: 0.0085
+      P12_run2: 0.0125
+      P13_run1: 0.1778
+      P13_run2: 0.0586
+      P15_run1: 0.0343
+      P17_run1: 0.1029
+      P17_run2: 0.0911
+      P19_run1: 0.058
+      P19_run2: 0.0632
+      P20_run1: 0.0802
+      P20_run2: 0.0941
+      P23_run1: 0.1493
+      P28_run1: 0.2036
+      P28_run2: 0.0772

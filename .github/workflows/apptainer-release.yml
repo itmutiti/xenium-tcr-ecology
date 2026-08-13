@@ -1,0 +1,74 @@
+name: Apptainer full build and validation (release)
+
+# Manual-dispatch only -- deliberately never runs on push/PR. Building
+# and validating the full xenium-tcr-ecology.sif (a multi-GB image, a
+# multi-hundred-package Conda/R resolution) on every commit would slow
+# down ordinary CI for no benefit; this workflow is reserved for
+# release-time verification of the Apptainer route specifically, run by
+# a maintainer when preparing a tagged release.
+#
+# Not required for ordinary reproduction of the computational analysis
+# -- the native Conda/Snakemake route (README "Setup") never depends on
+# this workflow, this image, or Apptainer at all.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-validate:
+    name: Build xenium-tcr-ecology.sif and run the full validation suite inside it
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Apptainer
+        run: |
+          curl -fsSL -o /tmp/apptainer.deb \
+            https://github.com/apptainer/apptainer/releases/download/v1.4.0/apptainer_1.4.0_amd64.deb
+          sudo apt-get update -qq
+          sudo apt-get install -y /tmp/apptainer.deb
+          apptainer --version
+
+      - name: Generate environment/conda/environment.lock
+        run: |
+          # Requires a real xenium-tcr-ecology conda env to lock from --
+          # see scripts/01_project_setup_and_governance/03_lock_software_environments.sh.
+          # On a maintainer's own release-prep machine (or a self-hosted
+          # runner with the environment pre-built), this step is
+          # typically already satisfied; documented here for a from-
+          # scratch GitHub-hosted run.
+          test -f environment/conda/environment.lock || {
+            echo "::error::environment/conda/environment.lock not found. Generate it first: scripts/01_project_setup_and_governance/03_lock_software_environments.sh (requires a built xenium-tcr-ecology conda env)."
+            exit 1
+          }
+
+      - name: Build the image
+        run: apptainer build xenium-tcr-ecology.sif containers/Apptainer.def
+
+      - name: Run the built-in %test section
+        run: apptainer test xenium-tcr-ecology.sif
+
+      - name: Snakemake DAG dry-run inside the image
+        run: |
+          chmod +x tools/run_with_apptainer.sh
+          tools/run_with_apptainer.sh snakemake --forceall -n
+
+      - name: Python unit + simulation suite inside the image
+        run: tools/run_with_apptainer.sh pytest tests/unit tests/simulation -q
+
+      - name: R test suite inside the image
+        run: |
+          tools/run_with_apptainer.sh Rscript -e \
+            "options(testthat.default_check_reporter='summary'); testthat::test_dir('tests/r_unit', reporter='summary')"
+
+      - name: Record image checksum
+        run: |
+          sha256sum xenium-tcr-ecology.sif | tee xenium-tcr-ecology.sif.sha256
+          echo "Attach xenium-tcr-ecology.sif.sha256 to the GitHub Release alongside the image."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xenium-tcr-ecology-sif-checksum
+          path: xenium-tcr-ecology.sif.sha256
+          # The .sif itself is not uploaded as a workflow artifact (size);
+          # attach it to the GitHub Release manually alongside this checksum.

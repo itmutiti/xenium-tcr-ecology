@@ -1,0 +1,106 @@
+sender_receiver_pairs:
+- pair_id: tumour_to_t_cell
+  sender: Epithelial_Tumour
+  receiver: T_cell
+  rationale: Local depletion already found (`10_niche_and_ecosystem_discovery/00_compute_cell_type_neighbourhood_enrichment.py`,
+    z=-20.80) and clone-tumour engagement already quantified (`11_clone_spatial_descriptors/02_quantify_clone_tumour_engagement.py`);
+    tests whether checkpoint signalling explains the spatial exclusion pattern.
+  relevant_programs:
+  - exhaustion
+  - antigen_presentation
+- pair_id: fibroblast_to_t_cell
+  sender: Fibroblast
+  receiver: T_cell
+  rationale: Non-trivial fibroblast barrier fraction already found along the shortest
+    path from T-cell clones to tumour (`11_clone_spatial_descriptors/04_quantify_stromal_and_myeloid_barriers.py`,
+    mean 0.201 among evaluable clone-sections).
+  relevant_programs:
+  - chemokine
+  - tgf_beta
+- pair_id: myeloid_to_t_cell
+  sender: Myeloid
+  receiver: T_cell
+  rationale: Myeloid/T_cell neighbourhood enrichment already found (`10_niche_and_ecosystem_discovery/00_compute_cell_type_neighbourhood_enrichment.py`,
+    z=11.84) and macrophage engagement enrichment already found (`11_clone_spatial_descriptors/03_quantify_clone_apc_support.py`,
+    1.441x).
+  relevant_programs:
+  - activation
+  - interferon
+  - chemokine
+- pair_id: dendritic_cell_to_t_cell
+  sender: Dendritic_cell
+  receiver: T_cell
+  rationale: Modest positive antigen-presentation score excess already found in T-cell-clone
+    spatial neighbourhoods (`11_clone_spatial_descriptors/03_quantify_clone_apc_support.py`,
+    +0.0608).
+  relevant_programs:
+  - antigen_presentation
+  - activation
+program_gene_sets:
+  cytotoxicity:
+  - GZMA
+  - GZMB
+  - GZMK
+  - PRF1
+  - GNLY
+  - NKG7
+  - KLRD1
+  - KLRB1
+  - KLRC1
+  - FGFBP2
+  exhaustion:
+  - PDCD1
+  - HAVCR2
+  - LAG3
+  - CTLA4
+  - TIGIT
+  - ENTPD1
+  - TOX
+  activation:
+  - CD69
+  - IL2RA
+  - TNFRSF9
+  - CD28
+  - CD27
+  interferon:
+  - CXCL9
+  - CXCL10
+  - IRF8
+  proliferation:
+  - MKI67
+  - TOP2A
+  - PCNA
+  - CCNB2
+  - CDK1
+  - UBE2C
+  - CENPF
+  stress:
+  - GDF15
+  - NFE2L2
+  - KEAP1
+  - STC1
+  - STC2
+  emt:
+  - SNAI1
+  - ACTA2
+  - PDGFRA
+  - PDGFRB
+  - THY1
+  - TNC
+  - THBS2
+  - VCAN
+  antigen_presentation:
+  - HLA-DRA
+  - HLA-DQB2
+  - CD1A
+  - CD1C
+  - CD1E
+  - LAMP3
+  chemokine:
+  - CCL5
+  - CCL19
+  - CCR7
+  - CXCR4
+  tgf_beta: []
+programs_with_zero_panel_coverage:
+- tgf_beta

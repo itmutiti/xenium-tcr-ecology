@@ -1,0 +1,54 @@
+# One entry per computational workflow stage under scripts/. Consumed by
+# docs/ to auto-generate the phase reference page and by governance checks
+# that need to know which stage a script belongs to.
+"01_project_setup_and_governance":
+  purpose: Research governance, computational environment and reproducibility
+  deterministic: true
+"02_raw_data_ingestion":
+  purpose: Data acquisition, integrity verification and immutable staging
+  deterministic: true
+"03_spatialdata_import":
+  purpose: Xenium import, coordinate harmonisation and canonical data objects
+  deterministic: true
+"04_quality_control":
+  purpose: Multilevel quality control, principled exclusion and transcript-integrity robustness
+  deterministic: true
+"05_preprocessing_and_normalisation":
+  purpose: Expression normalisation, feature engineering and technical variation
+  deterministic: true
+"06_cell_type_annotation":
+  purpose: Hierarchical cell annotation with uncertainty
+  deterministic: true
+"07_tumour_epithelium_characterisation":
+  purpose: Malignant epithelial-state inference and tumour-boundary reconstruction
+  deterministic: true
+"08_tcr_clonal_analysis":
+  purpose: TCR probe decoding, clone assignment, validation and ascertainment audit
+  deterministic: true
+"09_spatial_graph_construction_and_calibration":
+  purpose: Spatial graph construction, sensitivity framework and null-model calibration
+  deterministic: true
+"10_niche_and_ecosystem_discovery":
+  purpose: Discovery of spatial ecosystems and tissue domains
+  deterministic: true
+"11_clone_spatial_descriptors":
+  purpose: Clone-level ecological descriptors and structure test (provisional)
+  deterministic: true
+"12_external_checkpoint_validation":
+  purpose: Early external sanity-check and taxonomy-freeze gate
+  deterministic: true   # 12.03 applies a predeclared, fully automated freeze-or-revise rule
+"13_clone_ecology_confirmatory_models":
+  purpose: Confirmatory variance-partitioning and clone ecological modelling
+  deterministic: true
+"14_spatial_interactions_and_barriers":
+  purpose: Barrier topology and candidate spatial interactions
+  deterministic: true
+"15_hpv_stratified_analysis":
+  purpose: HPV-stratified analysis (consolidated, capped)
+  deterministic: true
+"16_external_validation_and_generalisation":
+  purpose: Full external validation, triangulation and generalisability
+  deterministic: true
+"17_statistical_closure_and_release":
+  purpose: Statistical closure, figures, manuscript and reproducible release
+  deterministic: true

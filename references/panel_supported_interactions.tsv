@@ -1,0 +1,21 @@
+pair_id	ligand	receptor	programs	ligand_present	receptor_present	pair_complete
+PD1_PDL1	CD274	PDCD1	exhaustion	True	True	True
+PD1_PDL2	PDCD1LG2	PDCD1	exhaustion	False	True	False
+CTLA4_CD80	CD80	CTLA4	exhaustion	True	True	True
+CTLA4_CD86	CD86	CTLA4	exhaustion	True	True	True
+CD28_CD80	CD80	CD28	activation	True	True	True
+CD28_CD86	CD86	CD28	activation	True	True	True
+TIGIT_PVR	PVR	TIGIT	exhaustion	True	True	True
+TIGIT_PVRL2	PVRL2	TIGIT	exhaustion	False	True	False
+LAG3_MHCII	HLA-DRA	LAG3	exhaustion;antigen_presentation	True	True	True
+TIM3_GAL9	LGALS9	HAVCR2	exhaustion	False	True	False
+CD27_CD70	CD70	CD27	activation	True	True	True
+4-1BB_4-1BBL	TNFSF9	TNFRSF9	activation	False	True	False
+ICOS_ICOSLG	ICOSLG	ICOS	activation	False	False	False
+CD40_CD40LG	CD40LG	CD40	activation	False	False	False
+CXCR3_CXCL9	CXCL9	CXCR3	interferon;chemokine	True	False	False
+CXCR3_CXCL10	CXCL10	CXCR3	interferon;chemokine	True	False	False
+CCR7_CCL19	CCL19	CCR7	chemokine	True	True	True
+CXCR4_CXCL12	CXCL12	CXCR4	chemokine	False	True	False
+CD47_SIRPA	CD47	SIRPA		False	False	False
+CD39_CD73	ENTPD1	NT5E	exhaustion	True	False	False

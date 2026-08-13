@@ -1,0 +1,40 @@
+# Machine-checked reproducibility policy. Enforced by tools/scaffold_repository.py
+# at scaffold time and, once governance registries hold real content, by
+# xenium_tcr_ecology.infra.policy at every phase-checkpoint gate.
+
+project_name: xenium-tcr-ecology
+
+forbidden_hardcoded_paths:
+  - /home/
+  - /root/
+  - /workspace/
+  - /mnt/
+
+# Adapted, not copied, from the legacy policy's "forbidden_terms: [chapter]"
+# (which kept thesis-narrative language out of that project's pipeline code).
+# This project's equivalent separation-of-concerns terms:
+forbidden_terms_outside_designated_scope:
+  - term: mechanism
+    allowed_only_under:
+      - scripts/14_spatial_interactions_and_barriers/     # "candidate interaction" is the required term everywhere else
+      - reports/tumour/cnv_appendix  # CNV appendix-only output, never a primary claim path
+  - term: patient_identifier_literal
+    allowed_only_under:
+      - metadata/
+
+overwrite_policy: force_required          # write_file()-style skip-unless-forced convention
+processed_data_inside_results: forbidden  # results/ holds tables/figures/logs only, never data/derived content
+
+# Governance-as-code gates, enforced once the referenced registries are
+# populated:
+gates:
+  taxonomy_freeze:
+    description: >
+      Scripts under scripts/13_clone_ecology_confirmatory_models/ and later must refuse to run
+      unless governance/freeze_decision.tsv records status == "frozen".
+    enforced_in: xenium_tcr_ecology.infra.policy   # not yet implemented
+  hpv_single_contrast:
+    description: >
+      No hypothesis test outside scripts/15_hpv_stratified_analysis/ may reference hpv_status
+      in its model formula.
+    enforced_in: xenium_tcr_ecology.infra.policy   # not yet implemented

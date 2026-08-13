@@ -1,0 +1,30 @@
+# Optional, additive Snakemake profile: enables Snakemake's own native
+# per-rule Apptainer integration (Mode 2 of two optional Apptainer
+# execution routes -- see containers/Apptainer.def and
+# docs/execution_manual/EXECUTION_MANUAL.md "Reproducibility"). Mode 1
+# (tools/run_with_apptainer.sh, wrapping the entire `snakemake`
+# invocation in one `apptainer exec`) is the primary, recommended route;
+# this profile is a secondary option, using the single global
+# `container:` directive in the Snakefile -- no per-rule changes.
+#
+# Not used by default. Only takes effect when explicitly requested:
+#   snakemake --workflow-profile profiles/apptainer --cores 8
+#
+# Requires `xenium-tcr-ecology.sif` to already be built in the repo
+# root (apptainer build xenium-tcr-ecology.sif containers/Apptainer.def)
+# -- this profile does not build it.
+#
+# --bind $PWD (no ":target") binds the current working directory at the
+# SAME absolute path inside the container -- required so that the host
+# paths Snakemake itself tracks (results/logs/*.done sentinels, etc.)
+# resolve identically whether a job runs natively or inside the
+# container. Snakemake is always invoked from the repository root per
+# README.md / EXECUTION_MANUAL.md, so $PWD is the repository root here.
+cores: 8
+software-deployment-method: apptainer
+use-apptainer: true
+apptainer-args: "--cleanenv --bind $PWD"
+rerun-incomplete: true
+printshellcmds: true
+keep-going: false
+latency-wait: 10

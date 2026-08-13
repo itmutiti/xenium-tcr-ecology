@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below. Release date and DOI will be filled in at the first tagged release."
+title: "xenium-tcr-ecology"
+version: "1.0.0"
+repository-code: "https://github.com/itmutiti/xenium-tcr-ecology"
+authors:
+  - family-names: "Mutiti"
+    given-names: "Irvine Tatenda"
+    orcid: "https://orcid.org/0009-0006-1768-1887"
+    affiliation: "Independent Researcher"
+license: MIT

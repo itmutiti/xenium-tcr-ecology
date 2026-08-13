@@ -1,0 +1,14 @@
+cell_identity	hierarchy_level	parent_identity	markers	n_markers_in_panel	confidence_tier	rationale	registry_version
+Epithelial_Tumour	major_lineage		EPCAM;MET;ERBB2;EGFR;KRT7	5	moderate	General epithelial/carcinoma markers present; no squamous-specific markers (TP63, KRT5, KRT14, KRT17, KRT19, KRT8, KRT18, SFN) are in this panel -- callable as epithelial/tumour, not confidently as squamous-subtype-specific.	v1
+T_cell	major_lineage		CD3D;CD3E;CD2;CD7;TRAC;TRBC1;TRBC2;TRDC;CD247;CD28;CD27;CD226;IL7R	13	high	Strong, near-canonical T-cell receptor complex and pan-T-cell marker coverage.	v1
+NK_cell	major_lineage		NKG7;GNLY;KLRD1;KLRB1;KLRC1;FGFBP2	6	moderate	Cytotoxic/NK receptor markers present, but overlap substantially with cytotoxic CD8 T cells (GZMB/PRF1 deliberately excluded here as non-specific) -- NK identity requires CD3-negativity as an explicit exclusion criterion, not markers alone.	v1
+B_cell	major_lineage		CD19;MS4A1;CD79A;BANK1;TCL1A;IGHD	6	high	Canonical pan-B-cell markers all present.	v1
+Plasma_cell	major_lineage		MZB1;DERL3;TNFRSF17;FKBP11;TNFRSF13B	5	high	Canonical plasma-cell markers all present; distinguishable from B_cell (CD19/MS4A1-low).	v1
+Myeloid	major_lineage		CD68;CD14;CD163;MRC1;MARCO;AIF1;MPEG1;FCGR3A;FCGR1A;MNDA;FCN1;TREM2;CD5L;ADGRE1;VSIG4	15	high	Broad, strong monocyte/macrophage marker coverage; substate resolution (`06_cell_type_annotation/05_resolve_myeloid_and_stromal_substates.R`) needed to separate macrophage polarisation states.	v1
+Dendritic_cell	major_lineage		CD1A;CD1C;CD1E;LAMP3;CLEC10A;FCER1A;LILRA4;IRF8;SPIB	9	high	Covers conventional (CD1C/CLEC10A/FCER1A), mature/migratory (LAMP3), and plasmacytoid (LILRA4/IRF8/SPIB) DC axes.	v1
+Mast_cell	major_lineage		CPA3;MS4A2;KIT;CTSG	4	high	Canonical mast-cell markers all present.	v1
+Fibroblast	major_lineage		PDGFRA;FBLN1;FBN1;ASPN;SFRP2;SFRP4;DPT;COL5A2;MFAP5;OGN;VCAN;TNC	12	high	Strong ECM/stromal marker coverage. PDGFRB and THY1 excluded here (shared with Perivascular_SmoothMuscle / general mesenchymal identity) to keep the fibroblast set specific.	v1
+Endothelial	major_lineage		PECAM1;VWF;EGFL7;CLEC14A;RAMP2;SOX17;SOX18;ERG;MMRN2;ECSCR;GNG11	11	high	Canonical pan-endothelial markers all present.	v1
+Lymphatic_endothelial	substate	Endothelial	PROX1;LYVE1;MMRN1	3	moderate	Distinguishes lymphatic from blood endothelium within the Endothelial major lineage.	v1
+Perivascular_SmoothMuscle	major_lineage		ACTA2;MYH11;MYLK;RERGL;HIGD1B;DES;CNN1;PDGFRB	8	moderate	Covers pericyte/smooth-muscle identity; ACTA2 and PDGFRB are also myofibroblast/activated-stroma markers, so this identity can overlap with an activated Fibroblast state, not always cleanly separable in a targeted panel.	v1
+Erythroid	major_lineage		GYPA;GYPB;ALAS2;HEMGN;AHSP	5	high	Canonical erythroid markers -- expected as a background/blood-contamination signal in tissue sections, not a tumour-microenvironment cell type of biological interest.	v1

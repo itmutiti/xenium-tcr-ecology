@@ -1,0 +1,122 @@
+# Structured, manually curated registry of this project's planned
+# hypothesis-bearing and validation analyses, feeding
+# scripts/01_project_setup_and_governance/06_create_analysis_registry.py.
+#
+# Scope: this registers analyses that are actual hypothesis
+# tests or formal validation/calibration steps -- not all 137 phase
+# scripts, most of which are QC/engineering steps with no hypothesis to
+# register. This operationalises this project's primary/exploratory
+# distinction and the "no more than 1-2 HPV contrasts, ever" rule as a
+# pre-committed, auditable list, before any of these analyses has been run.
+
+analyses:
+  - analysis_id: q1_framework_generalisation
+    phase: "16_external_validation_and_generalisation"
+    script: "16_external_validation_and_generalisation/05_validate_framework_on_independent_dataset.py"
+    hypothesis: "The calibrated spatial-ecology framework (null models, rarefied descriptors, graph pruning) produces consistent, correctly-calibrated results when applied end-to-end to an independent spatial dataset, not only GSE300147."
+    unit_of_analysis: "dataset (the independent spatial dataset as a whole)"
+    exclusion_criteria: "None pre-specified; dataset selection criteria are recorded in governance/validation_plan.tsv (`16_external_validation_and_generalisation/00_define_validation_claims.py`) before this analysis runs."
+    primary_endpoint: "Qualitative + quantitative reproduction of calibration guarantees (Type I error, power) established in Spatial Graph Construction and Calibration on the new dataset."
+    multiplicity_family: "primary (Q1)"
+    taxonomy_version: "n/a"
+    status: planned
+  - analysis_id: q2_variance_partition_confirmatory
+    phase: "13_clone_ecology_confirmatory_models"
+    script: "13_clone_ecology_confirmatory_models/01_fit_variance_partition_models.R"
+    hypothesis: "Clonal spatial/phenotypic descriptor variance decomposes into identity, context, and patient components with non-trivial, estimable magnitude for each -- not that spatial context is the only or dominant source."
+    unit_of_analysis: "clone, nested in patient and section"
+    exclusion_criteria: "Clones excluded per TCR Clonal Analysis release (low-confidence/ambiguous calls); patients excluded per Quality Control release."
+    primary_endpoint: "Posterior/estimated variance-component magnitudes (identity, context, patient) with patient-level uncertainty, on the frozen taxonomy_version from External Checkpoint Validation."
+    multiplicity_family: "primary (Q2)"
+    taxonomy_version: "pending External Checkpoint Validation freeze"
+    status: planned
+  - analysis_id: q2_discrete_vs_continuous_structure_test
+    phase: "11_clone_spatial_descriptors"
+    script: "11_clone_spatial_descriptors/05_test_discrete_vs_continuous_structure.R"
+    hypothesis: "Clone ecological structure is better described by a continuous latent axis than by discrete categorical clusters (prespecified as the null to beat)."
+    unit_of_analysis: "clone, nested in patient and section"
+    exclusion_criteria: "Same as q2_variance_partition_confirmatory."
+    primary_endpoint: "Model comparison statistic (BIC / gap statistic / continuity metric) between discrete and continuous structure models."
+    multiplicity_family: "primary (Q2), gates whether a taxonomy is reported at all"
+    taxonomy_version: "produces v1 (provisional)"
+    status: planned
+  - analysis_id: q3_barrier_topology_confirmatory
+    phase: "14_spatial_interactions_and_barriers"
+    script: "14_spatial_interactions_and_barriers/03_model_barrier_topology_by_structure.R"
+    hypothesis: "Fibroblast/myeloid barrier topology (path/resistance distance to tumour) explains residual variance in clone-tumour engagement beyond cell-intrinsic state and niche composition alone."
+    unit_of_analysis: "clone, nested in patient and section"
+    exclusion_criteria: "Same as q2_variance_partition_confirmatory; additionally requires a calibrated degree-preserving null (`09_spatial_graph_construction_and_calibration/08_run_calibration_suite_on_synthetic_data.py`) to have passed for the barrier-graph null model specifically."
+    primary_endpoint: "Effect size of barrier topology on engagement after adjusting for state and niche composition, with patient-level uncertainty."
+    multiplicity_family: "primary (Q3)"
+    taxonomy_version: "uses frozen taxonomy_version from External Checkpoint Validation"
+    status: planned
+  - analysis_id: q3_literature_benchmark
+    phase: "14_spatial_interactions_and_barriers"
+    script: "14_spatial_interactions_and_barriers/06_benchmark_against_published_barrier_studies.R"
+    hypothesis: "This project's barrier-topology effect sizes are quantitatively comparable in direction and/or magnitude to Grout/Kim 2022 (lung CAF exclusion) and Hwang et al. 2022 (pancreatic multicellular communities) -- stated as a comparison, not a directional hypothesis to be 'confirmed'."
+    unit_of_analysis: "study-level effect size comparison"
+    exclusion_criteria: "n/a -- literature comparison, not a new statistical test on this project's own data."
+    primary_endpoint: "Qualitative and, where the published studies report comparable effect-size statistics, quantitative concordance."
+    multiplicity_family: "supporting (Q3), not independently multiplicity-corrected"
+    taxonomy_version: "n/a"
+    status: planned
+  - analysis_id: hpv_primary_contrast
+    phase: "15_hpv_stratified_analysis"
+    script: "15_hpv_stratified_analysis/03_compare_cellular_composition_patient_level.R;15_hpv_stratified_analysis/04_compare_ecosystem_and_clone_structure.R"
+    hypothesis: "RESERVED SLOT -- the single (or, capped, second) pre-specified HPV contrast for the entire thesis, to be named by scripts/15_hpv_stratified_analysis/01_prespecify_primary_hpv_contrasts.py before any HPV test is run. This registry entry exists to enforce the cap: no second confirmatory HPV analysis_id may be added without removing or explicitly justifying exceeding the 1-2 limit recorded in this file."
+    unit_of_analysis: "patient (n=5 HPV-positive vs n=5 HPV-negative)"
+    exclusion_criteria: "Per Quality Control release; HPV status source is p16_ihc_status, cross-validated against Xenium HPV16-E5 probe signal in `15_hpv_stratified_analysis/00_validate_hpv_metadata_and_probe_signal.py`."
+    primary_endpoint: "To be fixed by `15_hpv_stratified_analysis/01_prespecify_primary_hpv_contrasts.py` before this analysis runs, alongside its prospective minimum-detectable-effect-size simulation (`15_hpv_stratified_analysis/02_run_prospective_power_simulation.R`)."
+    multiplicity_family: "primary (HPV), capped at 1-2 for the entire thesis -- see config/reproducibility_policy.yaml gates.hpv_single_contrast"
+    taxonomy_version: "uses frozen taxonomy_version from External Checkpoint Validation, where relevant"
+    status: reserved_not_yet_specified
+  - analysis_id: null_model_calibration_suite
+    phase: "09_spatial_graph_construction_and_calibration"
+    script: "09_spatial_graph_construction_and_calibration/08_run_calibration_suite_on_synthetic_data.py"
+    hypothesis: "Each spatial null model (constrained permutation, degree-preserving, graph-preserving) achieves nominal Type I error and adequate power on synthetic data with known ground truth, at n=10-patient scale, before being trusted on real clones."
+    unit_of_analysis: "synthetic dataset replicate"
+    exclusion_criteria: "n/a -- synthetic data generated under `09_spatial_graph_construction_and_calibration/07_generate_synthetic_ground_truth_patterns.py`."
+    primary_endpoint: "Empirical Type I error rate at nominal alpha; power curve across a range of simulated effect sizes."
+    multiplicity_family: "methods validation, gates all downstream spatial-association claims (Phases 10-14)"
+    taxonomy_version: "n/a"
+    status: planned
+  - analysis_id: tcr_false_positive_rate
+    phase: "08_tcr_clonal_analysis"
+    script: "08_tcr_clonal_analysis/04_estimate_false_positive_tcr_calls.R"
+    hypothesis: "Off-patient probes, non-T cells, and spatially permuted controls establish an empirical false-positive rate for clone calls, used to set detection thresholds -- not a directional biological hypothesis."
+    unit_of_analysis: "cell (for the false-positive-rate estimate itself); clone (downstream use)"
+    exclusion_criteria: "Per Quality Control release."
+    primary_endpoint: "Empirical false-positive rate per patient/probe, and the detection threshold it implies."
+    multiplicity_family: "methods validation, gates all downstream clone-level claims (Phases 11-15)"
+    taxonomy_version: "n/a"
+    status: planned
+  - analysis_id: replicate_concordance
+    phase: "04_quality_control"
+    script: "04_quality_control/08_assess_replicate_concordance.R"
+    hypothesis: "Technical replicate sections (day nested within patient, 7/10 patients) show concordant counts, cell composition, expression, and spatial statistics -- explicitly expected to reproduce the source paper's own finding that 1 of 7 pairs does not."
+    unit_of_analysis: "section pair, nested in patient"
+    exclusion_criteria: "n/a -- this analysis itself informs later exclusion decisions."
+    primary_endpoint: "Concordance statistics per replicate pair; explicit flag for the pair expected to be discordant."
+    multiplicity_family: "methods validation / QC, not multiplicity-corrected"
+    taxonomy_version: "n/a"
+    status: planned
+  - analysis_id: segmentation_robustness_check
+    phase: "13_clone_ecology_confirmatory_models"
+    script: "13_clone_ecology_confirmatory_models/05_test_segmentation_robustness.py"
+    hypothesis: "Confirmatory clone-tumour engagement results (q3_barrier_topology_confirmatory and the engagement component of q2_variance_partition_confirmatory) are not artefacts of the primary segmentation, and are robust to an independently resegmented reference subset."
+    unit_of_analysis: "clone, on the `04_quality_control/05_resegment_reference_subset.py` resegmented reference subset"
+    exclusion_criteria: "Restricted to sections included in the `04_quality_control/05_resegment_reference_subset.py` resegmented subset only."
+    primary_endpoint: "Direction and approximate magnitude concordance between primary and resegmented-subset estimates for the same effect."
+    multiplicity_family: "robustness check on q2/q3, not independently multiplicity-corrected"
+    taxonomy_version: "uses frozen taxonomy_version from External Checkpoint Validation"
+    status: planned
+  - analysis_id: external_checkpoint_directional_consistency
+    phase: "12_external_checkpoint_validation"
+    script: "12_external_checkpoint_validation/02_quantify_directional_consistency.py"
+    hypothesis: "The provisional (Clone Spatial Descriptors) clone-structure signatures project onto an independent public HNSCC reference with the same direction of effect, not necessarily the same magnitude or statistical significance."
+    unit_of_analysis: "transcriptional programme (bulk/independent-reference projection)"
+    exclusion_criteria: "Per whatever independent reference is selected in `12_external_checkpoint_validation/00_project_provisional_signatures_to_bulk_reference.py`; recorded there, not pre-specified here."
+    primary_endpoint: "Directional concordance (sign agreement), not p<0.05, per this checkpoint's own design."
+    multiplicity_family: "gate for taxonomy freeze/revise decision, not a multiplicity-corrected confirmatory test"
+    taxonomy_version: "tests v1 (provisional), decides whether it becomes frozen"
+    status: planned

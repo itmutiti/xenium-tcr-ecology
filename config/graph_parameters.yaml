@@ -1,0 +1,16 @@
+calibrated_radius_um: 30.0
+calibrated_knn: 6
+connectivity_threshold: 0.95
+median_largest_component_fraction_by_candidate:
+  knn_10: 1.0
+  knn_15: 1.0
+  knn_6: 0.9994
+  radius_15.0um: 0.8362
+  radius_30.0um: 0.9847
+  radius_50.0um: 0.9882
+sections_with_genuine_multi_fragment_structure:
+- P10_run1
+- P19_run2
+rationale: Selected the smallest radius/k whose median largest-component fraction
+  across all 18 sections clears 0.95, preferring locally interpretable short-range
+  scales over larger ones once both are adequately connected.

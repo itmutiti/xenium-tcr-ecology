@@ -1,0 +1,90 @@
+.DS_Store
+.snakemake/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+.Rhistory
+.RData
+.Rproj.user/
+
+# LibreOffice/OpenOffice lock files -- transient, per-open-session
+# artefacts (not project content) that embed the local username,
+# hostname, and config path of whoever last opened a document. Follows
+# a different naming pattern than any single ignored document's own
+# rule would cover, so this needs its own general rule.
+.~lock.*#
+
+# environment.lock is committed (canonical, platform-pinned dependency
+# lock consumed by containers/Dockerfile and containers/Apptainer.def --
+# see their headers and docs/execution_manual/EXECUTION_MANUAL.md
+# "Environment setup"). Only the machine-specific observational exports
+# stay generated/ignored: environment.resolved.yml duplicates the lock's
+# package list in a more verbose, non-canonical form, and
+# R_sessionInfo.txt records this machine's own hostname/kernel/timestamp.
+environment/conda/environment.resolved.yml
+environment/R_sessionInfo.txt
+
+data/raw/**
+data/staged/**
+data/objects/**
+data/derived/**
+data/graphs/**
+data/releases/**
+data/external/**
+data/standardised/**
+results/**
+reports/**
+figures/main/**
+figures/supplementary/**
+tables/**
+release/**
+# metadata/*.tsv|.xlsx|.json are all pipeline-generated (e.g.
+# 01_build_sample_manifest.py -> sample_manifest.tsv,
+# 00_detect_xenium_format_version.py -> format_versions.tsv), the same
+# category as data/results/reports/figures/tables above -- found
+# untracked-but-should-be-ignored during clean-room verification: these
+# files were being committed as this developer's own local pipeline
+# output, so every "fresh" checkout silently carried stale, machine-
+# specific generated data instead of genuinely starting from empty.
+metadata/**
+!metadata/
+!data/raw/
+!data/staged/
+!data/objects/
+!data/derived/
+!data/graphs/
+!data/releases/
+!data/external/
+!data/standardised/
+!results/
+!reports/
+!figures/
+!tables/
+!release/
+!**/.gitkeep
+
+# Provenance/integrity files for externally-acquired datasets stay
+# public even though the datasets themselves (data/external/**) don't:
+# small, non-sensitive, and required for a fresh clone to verify what an
+# automated download fetched against a known-good hash -- see
+# src/xenium_tcr_ecology/infra/download.py.
+!data/external/**/
+!data/external/**/checksums.sha256
+!data/external/**/README.md
+
+containers/*.sif
+# Built Apptainer images -- large binary artefacts, never source; the
+# documented build command (containers/Apptainer.def) produces this at
+# the repository root, matching the user-facing example command exactly.
+*.sif
+.apptainer-cache/
+
+# Third-party copyrighted reference material (never redistributable)
+docs/Journals/
+
+# Claude Code session tooling
+.claude/

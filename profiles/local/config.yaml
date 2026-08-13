@@ -1,0 +1,6 @@
+cores: 8
+use-conda: true
+rerun-incomplete: true
+printshellcmds: true
+keep-going: false
+latency-wait: 10
