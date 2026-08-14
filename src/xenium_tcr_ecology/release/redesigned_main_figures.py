@@ -187,8 +187,15 @@ def build_figure_1_framework_generalisation(project_root: Path) -> dict:
     _plot_calibration_panel(ax_c, colorectal, "Colorectal cancer (external)")
     for ax in (ax_a, ax_b, ax_c):
         ax.set_ylabel("Rejection rate at p < 0.05\n(95% Clopper-Pearson CI)")
+    # Default panel-letter x offset (-0.16) sits too close to this panel's
+    # own y-axis: a wrapped two-line ylabel ("Rejection rate at p < 0.05
+    # (95% Clopper-Pearson CI)") plus the "1.0"/"0.8"-style tick numbers
+    # consume more of the left margin than the fixed axes-fraction offset
+    # assumes, so the bold letter lands on top of the top tick label.
+    # Shifted further left to clear it, same fix pattern as the lollipop
+    # panels above (panel_label(ax, "A", x=-0.34)).
     for letter, ax in zip("ABC", (ax_a, ax_b, ax_c)):
-        panel_label(ax, letter)
+        panel_label(ax, letter, x=-0.26)
     handles, labels = ax_a.get_legend_handles_labels()
     ax_legend.legend(
         handles,
@@ -288,7 +295,12 @@ def build_figure_variance_partition_with_sensitivity(project_root: Path) -> dict
     ax.invert_yaxis()
     ax.set_xlim(-0.02, 1.02)
     ax.set_ylim(len(components) - 0.5, -0.5)
-    ax.set_xlabel("Proportion of variance (95% bootstrap CI)")
+    # Single-line labels this long overflow the 7.4in canvas width (tight_layout
+    # can reposition the axes but cannot shrink a Text artist already wider than
+    # the whole figure); every other bootstrap-CI xlabel in this file wraps to
+    # two lines for the same reason (e.g. Figure 5's "Fixed-effect estimate\n(95%
+    # bootstrap CI)"). Match that convention here.
+    ax.set_xlabel("Proportion of variance\n(95% bootstrap CI)")
     ax.tick_params(axis="both", which="major", pad=5)
     # Legend placed below the axis, not inline: in this taller, narrower
     # canvas the CI lines span most of the plot area at every category,

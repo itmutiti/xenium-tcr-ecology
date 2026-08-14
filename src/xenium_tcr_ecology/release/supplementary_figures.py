@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 
 from xenium_tcr_ecology.infra.exceptions import PipelineError
-from xenium_tcr_ecology.infra.figure_export import export_pdf_to_png_and_svg
+from xenium_tcr_ecology.infra.figure_export import export_pdf_to_png_svg_and_tiff
 from xenium_tcr_ecology.release.main_figures import MAIN_FIGURE_MANIFEST
 
 CLONE_ATLAS_PATH = "reports/clone_ecology/clone_atlas.html"
@@ -70,7 +70,7 @@ def build_supplementary_figures(project_root: Path) -> dict:
         stem = f"SupplementaryFigure_{i}_{Path(rel_path).stem}"
         dest = figures_dir / f"{stem}.pdf"
         dest.write_bytes(source.read_bytes())
-        export_pdf_to_png_and_svg(dest, figures_dir, stem)
+        export_pdf_to_png_svg_and_tiff(dest, figures_dir, stem)
         manifest_rows.append(
             {"supplementary_figure_number": i, "filename": dest.name, "source_path": rel_path}
         )

@@ -35,7 +35,7 @@ from pathlib import Path
 import pandas as pd
 
 from xenium_tcr_ecology.infra.exceptions import PipelineError
-from xenium_tcr_ecology.infra.figure_export import export_pdf_to_png_and_svg
+from xenium_tcr_ecology.infra.figure_export import export_pdf_to_png_svg_and_tiff
 
 MAIN_FIGURE_MANIFEST: list[dict] = [
     {
@@ -109,7 +109,7 @@ def build_main_figures(project_root: Path) -> dict:
         stem = f"Figure_{entry['figure_number']}_{entry['descriptive_name']}"
         dest = figures_dir / f"{stem}.pdf"
         dest.write_bytes(source.read_bytes())
-        export_pdf_to_png_and_svg(dest, figures_dir, stem)
+        export_pdf_to_png_svg_and_tiff(dest, figures_dir, stem)
         manifest_rows.append(
             {
                 "figure_number": entry["figure_number"],

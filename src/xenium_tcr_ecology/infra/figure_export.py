@@ -2,9 +2,12 @@
 figure is a vector PDF (publication-quality, kept as the primary
 format) plus a high-resolution PNG (600 DPI, meeting typical journal
 print-reproduction minimums, for easy inclusion in slide decks and
-Word/PowerPoint, which do not embed PDF well) and an SVG (vector, for
-direct editing in Illustrator/Inkscape or embedding in HTML). No JPEG
--- lossy compression is inappropriate for statistical plots with sharp
+Word/PowerPoint, which do not embed PDF well), an SVG (vector, for
+direct editing in Illustrator/Inkscape or embedding in HTML), and a
+600 DPI TIFF (LZW-compressed, lossless -- some submission portals'
+separate-figure-upload paths accept only JPEG/TIFF/EPS, not PDF or
+PNG; TIFF is the one of those three that stays lossless). No JPEG --
+lossy compression is inappropriate for statistical plots with sharp
 text and thin lines.
 
 Uses `pdftocairo` (poppler-utils, already a system dependency of this
@@ -24,24 +27,28 @@ from pathlib import Path
 from xenium_tcr_ecology.infra.exceptions import PipelineError
 
 PNG_DPI = 600
+TIFF_DPI = 600
 
 
 def check_pdftocairo_available() -> None:
     if shutil.which("pdftocairo") is None:
         raise PipelineError(
-            "'pdftocairo' (poppler-utils) not found on PATH -- required for PNG/SVG figure export. "
-            "Install poppler-utils (e.g. `apt-get install poppler-utils` / `conda install poppler`)."
+            "'pdftocairo' (poppler-utils) not found on PATH -- required for PNG/SVG/TIFF figure "
+            "export. Install poppler-utils (e.g. `apt-get install poppler-utils` / "
+            "`conda install poppler`)."
         )
 
 
-def export_pdf_to_png_and_svg(pdf_path: Path, output_dir: Path, stem: str) -> dict:
+def export_pdf_to_png_svg_and_tiff(pdf_path: Path, output_dir: Path, stem: str) -> dict:
     """Renders `pdf_path` (a single-page figure PDF) to a PNG
-    (`PNG_DPI` dots per inch) and an SVG, both named `<stem>` in
-    `output_dir`. Returns their paths."""
+    (`PNG_DPI` dots per inch), an SVG, and an LZW-compressed TIFF
+    (`TIFF_DPI` dots per inch), all named `<stem>` in `output_dir`.
+    Returns their paths."""
     check_pdftocairo_available()
 
     png_path = output_dir / f"{stem}.png"
     svg_path = output_dir / f"{stem}.svg"
+    tiff_path = output_dir / f"{stem}.tif"
 
     subprocess.run(
         [
@@ -61,10 +68,26 @@ def export_pdf_to_png_and_svg(pdf_path: Path, output_dir: Path, stem: str) -> di
         check=True,
         capture_output=True,
     )
+    subprocess.run(
+        [
+            "pdftocairo",
+            "-tiff",
+            "-tiffcompression",
+            "lzw",
+            "-r",
+            str(TIFF_DPI),
+            "-singlefile",
+            str(pdf_path),
+            str(output_dir / stem),
+        ],
+        check=True,
+        capture_output=True,
+    )
 
-    if not png_path.is_file() or not svg_path.is_file():
+    if not png_path.is_file() or not svg_path.is_file() or not tiff_path.is_file():
         raise PipelineError(
-            f"pdftocairo did not produce expected PNG/SVG output for '{pdf_path}' (stem '{stem}')."
+            f"pdftocairo did not produce expected PNG/SVG/TIFF output for '{pdf_path}' "
+            f"(stem '{stem}')."
         )
 
-    return {"png_path": str(png_path), "svg_path": str(svg_path)}
+    return {"png_path": str(png_path), "svg_path": str(svg_path), "tiff_path": str(tiff_path)}
