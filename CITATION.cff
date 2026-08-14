@@ -1,8 +1,13 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below. Release date and DOI will be filled in at the first tagged release."
+message: "If you use this software, please cite it as below."
 title: "xenium-tcr-ecology"
 version: "1.0.0"
+date-released: "2026-08-14"
 repository-code: "https://github.com/itmutiti/xenium-tcr-ecology"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21926544"
+    description: "Archived snapshot of version 1.0.0"
 authors:
   - family-names: "Mutiti"
     given-names: "Irvine Tatenda"
