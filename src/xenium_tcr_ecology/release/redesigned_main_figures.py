@@ -388,7 +388,16 @@ def build_figure_barrier_topology_with_ablation(project_root: Path) -> dict:
         colors,
         xlabel="Fixed-effect estimate\n(95% bootstrap CI)",
     )
-    panel_title(ax, "Adjusted for state + niche")
+    # See the comment above panel C's title below: panel_title()'s default
+    # 10pt pad is too close for this axes' rendered height, colliding with
+    # the panel-label letter. Same explicit-pad fix as panel C.
+    ax.set_title(
+        "Adjusted for state + niche",
+        fontsize=FS_PANEL_TITLE,
+        fontweight="regular",
+        pad=32,
+        loc="center",
+    )
     panel_label(ax, "A")
 
     # B: covariate-ablation stress test on the suppressive-myeloid effect --
@@ -420,7 +429,13 @@ def build_figure_barrier_topology_with_ablation(project_root: Path) -> dict:
         colors,
         xlabel="Suppressive-myeloid estimate\n(95% CI)",
     )
-    panel_title(ax, "Covariate-ablation stress test")
+    ax.set_title(
+        "Covariate-ablation stress test",
+        fontsize=FS_PANEL_TITLE,
+        fontweight="regular",
+        pad=32,
+        loc="center",
+    )
     panel_label(ax, "B")
 
     # C: this project's raw (unadjusted) correlations against the one

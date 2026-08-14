@@ -7,7 +7,10 @@ repository-code: "https://github.com/itmutiti/xenium-tcr-ecology"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21926544"
-    description: "Archived snapshot of version 1.0.0"
+    description: "Archived snapshot of version 1.0.0 (released 2026-08-14)"
+  - type: doi
+    value: "10.5281/zenodo.21935017"
+    description: "Processed public data release, v1.0.0 (released 2026-08-14)"
 authors:
   - family-names: "Mutiti"
     given-names: "Irvine Tatenda"
